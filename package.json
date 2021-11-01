@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "nuxt": "^2.15.8"
+    "axios": "^0.24.0",
+    "nuxt": "^2.12.2"
   }
 }
