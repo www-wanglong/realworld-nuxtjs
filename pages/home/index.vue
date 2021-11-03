@@ -73,7 +73,7 @@
                   username: article.author.username
                 }
               }">
-                <img src="article.author.image"/>
+                <img :src="article.author.image" />
               </nuxt-link>
               <div class="info">
                 <nuxt-link
@@ -86,13 +86,15 @@
                 }">
                 {{ article.author.username }}
                 </nuxt-link>
-                <span class="date">{{ article.createdAt }}</span>
+                <span class="date">{{ article.createdAt | date('MMM DD, YYYY') }}</span>
               </div>
               <button
                 class="btn btn-outline-primary btn-sm pull-xs-right"
                 :class="{
                   active: article.favorited
                 }"
+                @click="onFavorite(article)"
+                :disabled="article.favoriteDisabled"
               >
                 <i class="ion-heart"></i> {{ article.favoritesCount }}
               </button>
@@ -161,7 +163,12 @@
 </template>
 
 <script>
-import { getArticles, getFeedArticles } from '@/api/article'
+import {
+  getArticles,
+  getFeedArticles,
+  addFavorite,
+  deleteFavorite,
+} from '@/api/article'
 import { getTags } from '@/api/tag'
 import { mapState } from 'vuex'
 export default {
@@ -184,11 +191,30 @@ export default {
 
     const { articles, articlesCount } = atcicleRes.data
     const { tags } = tagRes.data
-
+    articles.forEach( article => article.favoriteDisabled = false )
+    // const articles = [
+    //   {
+    //     author: {
+    //       bio: null,
+    //       image: "https://realworld-temp-api.herokuapp.com/images/smiley-cyrus.jpeg",
+    //       username: "faker",
+    //     },
+    //     body: "sacsc",
+    //     comments: [],
+    //     createdAt: "2021-11-03T13:26:31.913Z",
+    //     description: "test",
+    //     favorited: false,
+    //     favoritesCount: 0,
+    //     slug: "test-5366",
+    //     tagList: [],
+    //     title: "test",
+    //     updatedAt: "2021-11-03T13:26:31.913Z",
+    //   }
+    // ]
     return {
       articles,
-      articlesCount: 389,
-      tags: ['vue', 'react', 'angular'],
+      articlesCount,
+      tags,
       limit,
       page,
       tag,
@@ -200,6 +226,24 @@ export default {
     ...mapState(['user']),
     totalPage () {
       return Math.ceil(this.articlesCount / this.limit)
+    }
+  },
+  methods: {
+    async onFavorite (article) {
+      article.favoriteDisabled  = true
+      if (article.favorited) {
+        // 取消点赞
+        await deleteFavorite(article.slug)
+        article.favorited = false
+        article.favoritesCount += -1
+      } else {
+        // 点赞
+
+        await addFavorite(article.slug)
+        article.favorited = true
+        article.favoritesCount += 1
+      }
+      article.favoriteDisabled = false
     }
   }
 };
