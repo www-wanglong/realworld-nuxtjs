@@ -17,3 +17,20 @@ export const register = (data) => {
     data
   })
 }
+
+// 修改
+export const getUser = () => {
+  return request({
+    method: 'GET',
+    url: 'user',
+  })
+}
+
+// 修改
+export const update = (data) => {
+  return request({
+    method: 'PUT',
+    url: 'user',
+    data
+  })
+}

@@ -1,8 +1,9 @@
 <template>
   <div>
-    <form class="card comment-form">
+    <form class="card comment-form" @submit.prevent="createComment">
       <div class="card-block">
         <textarea
+          v-model="comment.body"
           class="form-control"
           placeholder="Write a comment..."
           rows="3"
@@ -50,6 +51,10 @@
           {{ comment.author.username }}
         </nuxt-link>
         <span class="date-posted">{{ comment.createdAt | date('MMM DD, YYYY') }}</span>
+
+        <span @click="headleDelete(comment.id)" v-if="isSelfArticle" class="mod-options">
+          <i class="ion-trash-a"></i>
+        </span>
       </div>
     </div>
 
@@ -57,23 +62,44 @@
 </template>
 
 <script>
-import { getComments } from '@/api/article'
+import { getComments, createComment, deleteComment } from '@/api/article'
 export default {
   name: "ArticleComments",
   props: {
     article: {
       type: Object,
       required: true
+    },
+    isSelfArticle: {
+      type: Boolean,
+      required: false
     }
   },
   data () {
     return {
+      comment: {
+        body: ''
+      },
       comments: [] //文章列表
     }
   },
   async mounted () {
     const { data } = await getComments(this.article.slug)
     this.comments = data.comments
+  },
+  methods: {
+    /** 提交评论  */
+    async createComment () {
+      const { data } = await createComment(this.article.slug, {comment: this.comment})
+      this.comments.push(data.comment)
+      this.comment.body = ''
+    },
+    /** 删除自己的评论 */
+    async headleDelete (id) {
+      await deleteComment(this.article.slug, id)
+      const index = this.comments.findIndex( comment => comment.id === id )
+      this.comments.splice(index)
+    }
   }
 };
 </script>

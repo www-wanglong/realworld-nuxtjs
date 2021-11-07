@@ -4,7 +4,7 @@
       <div class="container">
         <h1>{{ article.title }}</h1>
 
-        <article-meta :article="article" />
+        <article-meta :article="article" :isSelfArticle="isSelfArticle" />
       </div>
     </div>
 
@@ -16,12 +16,12 @@
       <hr />
 
       <div class="article-actions">
-        <article-meta :article="article" />
+        <article-meta :article="article" :isSelfArticle="isSelfArticle" />
       </div>
 
       <div class="row">
         <div class="col-xs-12 col-md-8 offset-md-2">
-          <article-comments :article="article" />
+          <article-comments :article="article" :isSelfArticle="isSelfArticle" />
         </div>
       </div>
     </div>
@@ -39,13 +39,16 @@ export default {
     ArticleMeta,
     ArticleComments
   },
-  async asyncData ({ params }) {
+  async asyncData ({ params, store }) {
     const { data } = await getArticle(params.slug)
     const { article } = data
     const md = new MarkdownIt()
-    article.body =  md.render(article.body)
+    article.body = md.render(article.body)
+    console.log(store.state.user.username)
+    console.log(article.author.username)
     return {
-      article
+      article,
+      isSelfArticle: article.author.username === store.state.user.username
     }
   }
 };
