@@ -107,6 +107,7 @@ export default {
     },
     logout () {
       Cookie.remove('user')
+      this.$store.commit('setUser', null)
       this.$router.push('/login')
     }
   }

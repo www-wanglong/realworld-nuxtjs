@@ -4,11 +4,10 @@
       <div class="container">
         <div class="row">
           <div class="col-xs-12 col-md-10 offset-md-1">
-            <img src="http://i.imgur.com/Qr71crq.jpg" class="user-img" />
-            <h4>Eric Simons</h4>
+            <img :src="user.image" class="user-img" />
+            <h4>{{ user.username }}</h4>
             <p>
-              Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda
-              looks like Peeta from the Hunger Games
+              {{ user.bio }}
             </p>
             <button class="btn btn-sm btn-outline-secondary action-btn">
               <i class="ion-plus-round"></i>
@@ -25,55 +24,54 @@
           <div class="articles-toggle">
             <ul class="nav nav-pills outline-active">
               <li class="nav-item">
-                <a class="nav-link active" href="">My Articles</a>
+                <nuxt-link
+                  class="nav-link"
+                  :class="{
+                    active: tab === 'my_articles'
+                  }"
+                  :to="{
+                    name: 'profile',
+                    params: {
+                      username: $route.params.username,
+                    },
+                    query: {
+                      tab: 'my_articles'
+                    }
+                  }"
+                  exact
+                >
+                  My Articles
+                </nuxt-link>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="">Favorited Articles</a>
+                <nuxt-link
+                  class="nav-link"
+                  :class="{
+                    active: tab === 'favorited_articles'
+                  }"
+                  :to="{
+                    name: 'profile',
+                    params: {
+                      username: $route.params.username,
+                    },
+                    query: {
+                      tab: 'favorited_articles'
+                    }
+                  }"
+                  exact
+                >
+                  Favorited Articles
+                </nuxt-link>
               </li>
             </ul>
           </div>
 
-          <div class="article-preview">
-            <div class="article-meta">
-              <a href=""><img src="http://i.imgur.com/Qr71crq.jpg" /></a>
-              <div class="info">
-                <a href="" class="author">Eric Simons</a>
-                <span class="date">January 20th</span>
-              </div>
-              <button class="btn btn-outline-primary btn-sm pull-xs-right">
-                <i class="ion-heart"></i> 29
-              </button>
-            </div>
-            <a href="" class="preview-link">
-              <h1>How to build webapps that scale</h1>
-              <p>This is the description for the post.</p>
-              <span>Read more...</span>
-            </a>
-          </div>
-
-          <div class="article-preview">
-            <div class="article-meta">
-              <a href=""><img src="http://i.imgur.com/N4VcUeJ.jpg" /></a>
-              <div class="info">
-                <a href="" class="author">Albert Pai</a>
-                <span class="date">January 20th</span>
-              </div>
-              <button class="btn btn-outline-primary btn-sm pull-xs-right">
-                <i class="ion-heart"></i> 32
-              </button>
-            </div>
-            <a href="" class="preview-link">
-              <h1>
-                The song you won't ever stop singing. No matter how hard you
-                try.
-              </h1>
-              <p>This is the description for the post.</p>
-              <span>Read more...</span>
-              <ul class="tag-list">
-                <li class="tag-default tag-pill tag-outline">Music</li>
-                <li class="tag-default tag-pill tag-outline">Song</li>
-              </ul>
-            </a>
+          <div
+            class="article-preview"
+            v-for="article in articles"
+            :key="article.slug"
+          >
+            <article-item :article="article" />
           </div>
         </div>
       </div>
@@ -82,9 +80,55 @@
 </template>
 
 <script>
+import { getUser } from '@/api/user'
+import {
+  getArticles,
+} from '@/api/article'
+import ArticleItem from '@/components/article-item.vue'
 export default {
   middleware: 'authenticated',
-  name: 'ProfileIndex'
+  name: 'ProfileIndex',
+  components: {
+    ArticleItem,
+  },
+  data() {
+    return {
+      user: {},
+      articles: [],
+      limit: 10
+    }
+  },
+
+  computed: {
+    tab () {
+      console.log('this.$route.query.tab', this.$route.query.tab)
+      return this.$route.query.tab || 'my_articles'
+    }
+  },
+  watch: {
+    tab: {
+      handler: function (newVal, oldVal) {
+        this.loadArticles()
+      }
+    }
+  },
+  async mounted () {
+    const { data } = await getUser()
+    this.user = data.user
+    this.loadArticles()
+  },
+  methods: {
+    //TODO 分页处理
+    async loadArticles () {
+      let params = {
+        imit: this.limit,
+        offset: 0,
+        [this.tab === 'my_articles' ?  'author' : 'favorited']: this.user.username
+      }
+      const { data } = await getArticles(params)
+      this.articles = data.articles
+    }
+  }
 };
 </script>
 

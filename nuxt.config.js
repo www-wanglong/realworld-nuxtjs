@@ -40,7 +40,7 @@ module.exports = {
               component: resolve(__dirname, 'pages/settings/'),
             },
             {
-              path: '/new',
+              path: '/newArticle',
               name: 'newArticle',
               component: resolve(__dirname, 'pages/editor/'),
             },
